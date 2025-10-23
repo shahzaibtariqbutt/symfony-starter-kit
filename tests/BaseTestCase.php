@@ -115,13 +115,20 @@ abstract class BaseTestCase extends ApiTestCase
         return $response;
     }
 
-    /**
-     * Log in a user. Must be implemented by child classes based on auth method.
-     *
-     * For 2FA: Set static::$mySessionId
-     * For JWT: Set static::$myJwt
-     */
-    abstract public function logIn(string $email, string $password): void;
+    protected function logIn(?string $email = 'tim@example.com', ?string $password = 'Test123!'): void
+    {
+        $response = static::createClient()
+            ->request('POST', '/login-check', [
+                'json' => [
+                    'email' => $email,
+                    'password' => $password,
+                ],
+            ]);
+        $token = $response->toArray()['token'];
+        $this->assertIsString($token);
+        $this->assertNotEmpty($token);
+        static::$myJwt = $token;
+    }
 
     /**
      * Log out the current user.
